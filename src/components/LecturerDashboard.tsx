@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, Plus, Calendar, Users, QrCode, AlertTriangle } from "lucide-react";
+import { LogOut, Plus, Calendar, Users, QrCode, AlertTriangle, Bell, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import CreateLectureDialog from "./CreateLectureDialog";
 import LectureCard from "./LectureCard";
 import LowAttendancePanel from "./LowAttendancePanel";
+import TurnoutAnomalyPanel from "./TurnoutAnomalyPanel";
+import LecturerNotificationsPanel from "./LecturerNotificationsPanel";
 
 interface LecturerDashboardProps {
   profile: any;
@@ -18,6 +20,7 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
   const [lectures, setLectures] = useState<any[]>([]);
   const [stats, setStats] = useState({ total: 0, active: 0, totalAttendance: 0 });
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
 
   useEffect(() => {
     fetchLectures();
@@ -65,10 +68,20 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
             <h1 className="text-2xl font-bold text-foreground">Lecturer Dashboard</h1>
             <p className="text-sm text-muted-foreground">Welcome back, {profile.full_name}</p>
           </div>
-          <Button variant="outline" onClick={handleSignOut} className="gap-2">
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Bell className="w-6 h-6 text-muted-foreground" />
+              {unreadNotifs > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  {unreadNotifs}
+                </span>
+              )}
+            </div>
+            <Button variant="outline" onClick={handleSignOut} className="gap-2">
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -105,6 +118,12 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Lecturer Notifications */}
+        <LecturerNotificationsPanel
+          lecturerId={profile.id}
+          onUnreadCountChange={setUnreadNotifs}
+        />
 
         {/* Actions */}
         <Card className="shadow-card">
@@ -160,6 +179,22 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
           </CardHeader>
           <CardContent>
             <LowAttendancePanel lecturerId={profile.id} />
+          </CardContent>
+        </Card>
+
+        {/* Turnout Anomaly Detection */}
+        <Card className="shadow-card">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <TrendingDown className="w-5 h-5 text-orange-500" />
+              <div>
+                <CardTitle>Turnout Anomalies</CardTitle>
+                <CardDescription>Lectures with unusually low student turnout</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <TurnoutAnomalyPanel lecturerId={profile.id} />
           </CardContent>
         </Card>
       </main>
