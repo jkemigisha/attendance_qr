@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import LowAttendancePanel from "./LowAttendancePanel";
+import EditStudentDialog from "./EditStudentDialog";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("lecturers");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [newCourse, setNewCourse] = useState({ course_code: "", course_name: "", department: "" });
+  const [editingStudent, setEditingStudent] = useState<any>(null);
 
   useEffect(() => {
     fetchAll();
@@ -384,9 +386,14 @@ const AdminDashboard = () => {
                         <TableCell>{s.department || "—"}</TableCell>
                         <TableCell>{format(new Date(s.created_at), "MMM d, yyyy")}</TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteProfile(s.id, s.full_name)}>
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => setEditingStudent(s)}>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-primary"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteProfile(s.id, s.full_name)}>
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -559,6 +566,15 @@ const AdminDashboard = () => {
             <LowAttendancePanel />
           </TabsContent>
         </Tabs>
+
+        {editingStudent && (
+          <EditStudentDialog
+            student={editingStudent}
+            open={!!editingStudent}
+            onOpenChange={(open) => !open && setEditingStudent(null)}
+            onUpdate={fetchAll}
+          />
+        )}
       </main>
     </div>
   );
