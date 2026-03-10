@@ -13,10 +13,12 @@ interface StudentDashboardProps {
   profile: any;
 }
 
+const MIN_ATTENDANCE_PERCENT = 75;
+
 const StudentDashboard = ({ profile }: StudentDashboardProps) => {
   const navigate = useNavigate();
   const [showScanner, setShowScanner] = useState(false);
-  const [stats, setStats] = useState({ total: 0, thisWeek: 0, percentage: 0 });
+  const [stats, setStats] = useState({ total: 0, thisWeek: 0, percentage: 0, totalLectures: 0 });
   const [attendance, setAttendance] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
