@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { LogOut, Users, GraduationCap, BookOpen, ClipboardList, Plus, Trash2, Search, Printer, Download, Bell } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LogOut, Users, GraduationCap, BookOpen, ClipboardList, Plus, Trash2, Search, Printer, Download, Bell, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -22,6 +23,7 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [courseDialogOpen, setCourseDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("lecturers");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
   const [newCourse, setNewCourse] = useState({ course_code: "", course_name: "", department: "" });
 
   useEffect(() => {
@@ -89,7 +91,34 @@ const AdminDashboard = () => {
     }
   };
 
+  // Compute unique departments from all data sources
+  const departments = useMemo(() => {
+    const deptSet = new Set<string>();
+    lecturers.forEach((l) => l.department && deptSet.add(l.department));
+    students.forEach((s) => s.department && deptSet.add(s.department));
+    courses.forEach((c) => c.department && deptSet.add(c.department));
+    return Array.from(deptSet).sort();
+  }, [lecturers, students, courses]);
+
+  // Filter data by selected department
+  const filteredLecturers = useMemo(() => {
+    if (departmentFilter === "all") return lecturers;
+    return lecturers.filter((l) => l.department === departmentFilter);
+  }, [lecturers, departmentFilter]);
+
+  const filteredStudents = useMemo(() => {
+    if (departmentFilter === "all") return students;
+    return students.filter((s) => s.department === departmentFilter);
+  }, [students, departmentFilter]);
+
+  const filteredCourses = useMemo(() => {
+    if (departmentFilter === "all") return courses;
+    return courses.filter((c) => c.department === departmentFilter);
+  }, [courses, departmentFilter]);
+
   const filteredAttendance = attendance.filter((a) => {
+    const matchesDept = departmentFilter === "all" || a.profiles?.department === departmentFilter;
+    if (!matchesDept) return false;
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     return (
@@ -138,19 +167,19 @@ const AdminDashboard = () => {
 
   const exportLecturers = () => {
     const headers = ["Name", "Email", "Department", "Joined"];
-    const rows = lecturers.map((l) => [l.full_name, l.email, l.department || "", format(new Date(l.created_at), "MMM d, yyyy")]);
+    const rows = filteredLecturers.map((l) => [l.full_name, l.email, l.department || "", format(new Date(l.created_at), "MMM d, yyyy")]);
     return { headers, rows };
   };
 
   const exportStudents = () => {
     const headers = ["Name", "Student ID", "Email", "Department", "Joined"];
-    const rows = students.map((s) => [s.full_name, s.student_id || "", s.email, s.department || "", format(new Date(s.created_at), "MMM d, yyyy")]);
+    const rows = filteredStudents.map((s) => [s.full_name, s.student_id || "", s.email, s.department || "", format(new Date(s.created_at), "MMM d, yyyy")]);
     return { headers, rows };
   };
 
   const exportCourses = () => {
     const headers = ["Code", "Name", "Department"];
-    const rows = courses.map((c) => [c.course_code, c.course_name, c.department || ""]);
+    const rows = filteredCourses.map((c) => [c.course_code, c.course_name, c.department || ""]);
     return { headers, rows };
   };
 
@@ -171,15 +200,43 @@ const AdminDashboard = () => {
             <h1 className="text-2xl font-bold text-foreground">Admin Panel</h1>
             <p className="text-sm text-muted-foreground">Manage the UCU Attendance System</p>
           </div>
-          <Button variant="outline" onClick={handleSignOut} className="gap-2">
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="All Departments" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept} value={dept}>
+                      {dept}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button variant="outline" onClick={handleSignOut} className="gap-2">
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto p-4 space-y-6">
         {/* Stats */}
+        {departmentFilter !== "all" && (
+          <div className="flex items-center gap-2 px-1">
+            <span className="text-sm text-muted-foreground">Filtering by:</span>
+            <span className="text-sm font-semibold text-primary">{departmentFilter}</span>
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setDepartmentFilter("all")}>
+              Clear
+            </Button>
+          </div>
+        )}
+
         <div className="grid gap-4 md:grid-cols-4">
           <Card className="shadow-card cursor-pointer hover:border-primary/50 hover:shadow-md transition-all" onClick={() => setActiveTab("lecturers")}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -187,7 +244,7 @@ const AdminDashboard = () => {
               <GraduationCap className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary">{lecturers.length}</div>
+              <div className="text-3xl font-bold text-primary">{filteredLecturers.length}</div>
             </CardContent>
           </Card>
           <Card className="shadow-card cursor-pointer hover:border-primary/50 hover:shadow-md transition-all" onClick={() => setActiveTab("students")}>
@@ -196,7 +253,7 @@ const AdminDashboard = () => {
               <Users className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary">{students.length}</div>
+              <div className="text-3xl font-bold text-primary">{filteredStudents.length}</div>
             </CardContent>
           </Card>
           <Card className="shadow-card cursor-pointer hover:border-primary/50 hover:shadow-md transition-all" onClick={() => setActiveTab("courses")}>
@@ -205,7 +262,7 @@ const AdminDashboard = () => {
               <BookOpen className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary">{courses.length}</div>
+              <div className="text-3xl font-bold text-primary">{filteredCourses.length}</div>
             </CardContent>
           </Card>
           <Card className="shadow-card cursor-pointer hover:border-primary/50 hover:shadow-md transition-all" onClick={() => setActiveTab("attendance")}>
@@ -214,7 +271,7 @@ const AdminDashboard = () => {
               <ClipboardList className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary">{attendance.length}</div>
+              <div className="text-3xl font-bold text-primary">{filteredAttendance.length}</div>
             </CardContent>
           </Card>
         </div>
@@ -263,7 +320,7 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {lecturers.map((l) => (
+                    {filteredLecturers.map((l) => (
                       <TableRow key={l.id}>
                         <TableCell className="font-medium">{l.full_name}</TableCell>
                         <TableCell>{l.email}</TableCell>
@@ -276,7 +333,7 @@ const AdminDashboard = () => {
                         </TableCell>
                       </TableRow>
                     ))}
-                    {lecturers.length === 0 && (
+                    {filteredLecturers.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={5} className="text-center text-muted-foreground py-8">No lecturers found</TableCell>
                       </TableRow>
@@ -319,7 +376,7 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {students.map((s) => (
+                    {filteredStudents.map((s) => (
                       <TableRow key={s.id}>
                         <TableCell className="font-medium">{s.full_name}</TableCell>
                         <TableCell>{s.student_id || "—"}</TableCell>
@@ -333,7 +390,7 @@ const AdminDashboard = () => {
                         </TableCell>
                       </TableRow>
                     ))}
-                    {students.length === 0 && (
+                    {filteredStudents.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center text-muted-foreground py-8">No students found</TableCell>
                       </TableRow>
@@ -413,7 +470,7 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {courses.map((c) => (
+                    {filteredCourses.map((c) => (
                       <TableRow key={c.id}>
                         <TableCell className="font-medium">{c.course_code}</TableCell>
                         <TableCell>{c.course_name}</TableCell>
@@ -425,7 +482,7 @@ const AdminDashboard = () => {
                         </TableCell>
                       </TableRow>
                     ))}
-                    {courses.length === 0 && (
+                    {filteredCourses.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={4} className="text-center text-muted-foreground py-8">No courses yet</TableCell>
                       </TableRow>
