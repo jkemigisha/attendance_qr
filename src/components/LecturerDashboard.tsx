@@ -22,6 +22,13 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [unreadNotifs, setUnreadNotifs] = useState(0);
 
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   useEffect(() => {
     fetchLectures();
   }, []);
@@ -88,7 +95,10 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
       <main className="max-w-7xl mx-auto p-4 space-y-6">
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-3">
-          <Card className="shadow-card hover:shadow-elevated transition-shadow">
+          <Card 
+            className="shadow-card cursor-pointer hover:border-primary/50 hover:shadow-md transition-all"
+            onClick={() => scrollToSection('my-lectures')}
+          >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Lectures</CardTitle>
               <Calendar className="w-4 h-4 text-muted-foreground" />
@@ -98,7 +108,10 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-card hover:shadow-elevated transition-shadow">
+          <Card 
+            className="shadow-card cursor-pointer hover:border-primary/50 hover:shadow-md transition-all"
+            onClick={() => scrollToSection('my-lectures')}
+          >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Active Sessions</CardTitle>
               <QrCode className="w-4 h-4 text-muted-foreground" />
@@ -108,7 +121,10 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-card hover:shadow-elevated transition-shadow">
+          <Card 
+            className="shadow-card cursor-pointer hover:border-primary/50 hover:shadow-md transition-all"
+            onClick={() => scrollToSection('my-lectures')}
+          >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Attendance</CardTitle>
               <Users className="w-4 h-4 text-muted-foreground" />
@@ -126,7 +142,7 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
         />
 
         {/* Actions */}
-        <Card className="shadow-card">
+        <Card id="my-lectures" className="shadow-card scroll-mt-20">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
