@@ -17,8 +17,9 @@ $$;
 -- Drop existing UPDATE policy for admins on profiles if it exists
 DROP POLICY IF EXISTS "Admins can update all profiles" ON public.profiles;
 
--- Recreate the UPDATE policy using the new simplified function, just to be extremely sure
+-- Recreate the UPDATE policy using the new simplified function and explicit WITH CHECK
 CREATE POLICY "Admins can update all profiles"
 ON public.profiles FOR UPDATE
 TO authenticated
-USING (public.is_admin(auth.uid()));
+USING (public.is_admin(auth.uid()))
+WITH CHECK (public.is_admin(auth.uid()));
