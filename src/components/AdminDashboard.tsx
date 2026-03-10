@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, Users, GraduationCap, BookOpen, ClipboardList, Plus, Trash2, Search, Printer, Download, Bell, Filter } from "lucide-react";
+import { LogOut, Users, GraduationCap, BookOpen, ClipboardList, Plus, Trash2, Search, Printer, Download, Bell, Filter, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import LowAttendancePanel from "./LowAttendancePanel";
 import EditStudentDialog from "./EditStudentDialog";
 
@@ -139,7 +141,34 @@ const AdminDashboard = () => {
     link.download = `${filename}_${format(new Date(), "yyyy-MM-dd")}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
-    toast.success("Report downloaded");
+    toast.success("CSV Report downloaded");
+  };
+
+  const downloadPDF = (title: string, filename: string, headers: string[], rows: string[][]) => {
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(16);
+    doc.text(title, 14, 15);
+    
+    // Add date
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generated on ${format(new Date(), "MMMM d, yyyy 'at' h:mm a")}`, 14, 22);
+    
+    // Add table
+    autoTable(doc, {
+      head: [headers],
+      body: rows,
+      startY: 28,
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+      alternateRowStyles: { fillColor: [245, 245, 245] }
+    });
+    
+    doc.save(`${filename}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    toast.success("PDF Report downloaded");
   };
 
   const printReport = (title: string, headers: string[], rows: string[][]) => {
@@ -307,6 +336,9 @@ const AdminDashboard = () => {
                     <Button variant="outline" size="sm" className="gap-1" onClick={() => { const { headers, rows } = exportLecturers(); downloadCSV("lecturers", headers, rows); }}>
                       <Download className="w-4 h-4" /> CSV
                     </Button>
+                    <Button variant="outline" size="sm" className="gap-1" onClick={() => { const { headers, rows } = exportLecturers(); downloadPDF("Lecturers Report", "lecturers", headers, rows); }}>
+                      <FileText className="w-4 h-4" /> PDF
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -361,6 +393,9 @@ const AdminDashboard = () => {
                     </Button>
                     <Button variant="outline" size="sm" className="gap-1" onClick={() => { const { headers, rows } = exportStudents(); downloadCSV("students", headers, rows); }}>
                       <Download className="w-4 h-4" /> CSV
+                    </Button>
+                    <Button variant="outline" size="sm" className="gap-1" onClick={() => { const { headers, rows } = exportStudents(); downloadPDF("Students Report", "students", headers, rows); }}>
+                      <FileText className="w-4 h-4" /> PDF
                     </Button>
                   </div>
                 </div>
@@ -423,6 +458,9 @@ const AdminDashboard = () => {
                     </Button>
                     <Button variant="outline" size="sm" className="gap-1" onClick={() => { const { headers, rows } = exportCourses(); downloadCSV("courses", headers, rows); }}>
                       <Download className="w-4 h-4" /> CSV
+                    </Button>
+                    <Button variant="outline" size="sm" className="gap-1" onClick={() => { const { headers, rows } = exportCourses(); downloadPDF("Courses Report", "courses", headers, rows); }}>
+                      <FileText className="w-4 h-4" /> PDF
                     </Button>
                   <Dialog open={courseDialogOpen} onOpenChange={setCourseDialogOpen}>
                     <DialogTrigger asChild>
@@ -515,6 +553,9 @@ const AdminDashboard = () => {
                     </Button>
                     <Button variant="outline" size="sm" className="gap-1" onClick={() => { const { headers, rows } = exportAttendance(); downloadCSV("attendance", headers, rows); }}>
                       <Download className="w-4 h-4" /> CSV
+                    </Button>
+                    <Button variant="outline" size="sm" className="gap-1" onClick={() => { const { headers, rows } = exportAttendance(); downloadPDF("Attendance Report", "attendance", headers, rows); }}>
+                      <FileText className="w-4 h-4" /> PDF
                     </Button>
                   </div>
                 </div>
