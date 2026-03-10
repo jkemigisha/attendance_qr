@@ -8,13 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, Users, GraduationCap, BookOpen, ClipboardList, Plus, Trash2, Search, Printer, Download, Bell, Filter, FileText } from "lucide-react";
+import { LogOut, Users, GraduationCap, BookOpen, ClipboardList, Plus, Trash2, Search, Printer, Download, Filter, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import LowAttendancePanel from "./LowAttendancePanel";
 import EditStudentDialog from "./EditStudentDialog";
 
 const AdminDashboard = () => {
@@ -309,15 +308,11 @@ const AdminDashboard = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="lecturers">Lecturers</TabsTrigger>
             <TabsTrigger value="students">Students</TabsTrigger>
             <TabsTrigger value="courses">Courses</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
-            <TabsTrigger value="alerts" className="gap-1.5">
-              <Bell className="w-3.5 h-3.5" />
-              Alerts
-            </TabsTrigger>
           </TabsList>
 
           {/* Lecturers Tab */}
@@ -601,10 +596,6 @@ const AdminDashboard = () => {
                 </Table>
               </CardContent>
             </Card>
-          </TabsContent>
-          {/* Alerts Tab */}
-          <TabsContent value="alerts">
-            <LowAttendancePanel />
           </TabsContent>
         </Tabs>
 

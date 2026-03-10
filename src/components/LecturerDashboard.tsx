@@ -2,12 +2,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, Plus, Calendar, Users, QrCode, AlertTriangle, Bell, TrendingDown } from "lucide-react";
+import { LogOut, Plus, Calendar, Users, QrCode, Bell, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import CreateLectureDialog from "./CreateLectureDialog";
 import LectureCard from "./LectureCard";
-import LowAttendancePanel from "./LowAttendancePanel";
 import TurnoutAnomalyPanel from "./TurnoutAnomalyPanel";
 import LecturerNotificationsPanel from "./LecturerNotificationsPanel";
 import ManageStudentsPanel from "./ManageStudentsPanel";
@@ -196,22 +195,6 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
           </CardHeader>
           <CardContent>
             <ManageStudentsPanel />
-          </CardContent>
-        </Card>
-
-        {/* Low Attendance Alerts */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-amber-500" />
-              <div>
-                <CardTitle>Low Attendance Alerts</CardTitle>
-                <CardDescription>Students in your lectures who may need attendance warnings</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <LowAttendancePanel lecturerId={profile.id} />
           </CardContent>
         </Card>
 
