@@ -190,6 +190,42 @@ const StudentDashboard = ({ profile }: StudentDashboardProps) => {
           </Card>
         </div>
 
+        {/* Eligibility status */}
+        <Card className="shadow-card hover:shadow-elevated transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Final Exam Eligibility</CardTitle>
+            <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {stats.totalLectures === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Your attendance will be calculated once lectures are available.
+              </p>
+            ) : stats.percentage >= MIN_ATTENDANCE_PERCENT ? (
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-emerald-600">
+                  🎉 You are eligible to sit for final exams.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  You have attended {stats.total} of {stats.totalLectures} lectures ({stats.percentage}%).
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-amber-600">
+                  You must attend at least {MIN_ATTENDANCE_PERCENT}% of lectures to sit final exams.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  You have attended {stats.total} of {stats.totalLectures} lectures ({stats.percentage}%).
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Attend at least {Math.max(0, Math.ceil((MIN_ATTENDANCE_PERCENT / 100) * stats.totalLectures) - stats.total)} more lecture(s) to become eligible.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Scanner Section */}
         <Card className="shadow-card">
           <CardHeader>
