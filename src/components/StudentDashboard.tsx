@@ -52,19 +52,19 @@ const StudentDashboard = ({ profile }: StudentDashboardProps) => {
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
       
-      const thisWeek = data?.filter(a => 
+      const thisWeek = data?.filter((a) => 
         new Date(a.marked_at) >= oneWeekAgo
       ).length || 0;
 
-      // Get total lectures to calculate percentage
+      // Get total lectures to calculate percentage (assumes each lecture should be attended once)
       const { data: lecturesData } = await supabase
         .from("lectures")
         .select("id");
       
-      const totalLectures = lecturesData?.length || 1;
-      const percentage = Math.round((total / totalLectures) * 100);
+      const totalLectures = lecturesData?.length || 0;
+      const percentage = totalLectures > 0 ? Math.round((total / totalLectures) * 100) : 0;
 
-      setStats({ total, thisWeek, percentage });
+      setStats({ total, thisWeek, percentage, totalLectures });
     } catch (error) {
       console.error("Error fetching attendance:", error);
       toast.error("Failed to load attendance");
