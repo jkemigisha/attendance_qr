@@ -35,7 +35,10 @@ const EditStudentDialog = ({ student, open, onOpenChange, onUpdate }: EditStuden
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!student?.id) return;
+    if (!student?.id) {
+      toast.error("Unable to update student: missing student ID.");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -55,7 +58,17 @@ const EditStudentDialog = ({ student, open, onOpenChange, onUpdate }: EditStuden
       onOpenChange(false);
     } catch (error: any) {
       console.error("Error updating student:", error);
-      toast.error(error.message || "Failed to update student");
+      const errMsg = error?.message || (typeof error === "string" ? error : null);
+
+      // If the update was blocked by row-level security, provide a clearer hint.
+      if (errMsg?.toLowerCase().includes("permission denied")) {
+        toast.error(
+          "Permission denied: your user may not have rights to update other student profiles. " +
+            "Make sure your account has the admin role in the database."
+        );
+      } else {
+        toast.error(errMsg || "Failed to update student");
+      }
     } finally {
       setLoading(false);
     }
