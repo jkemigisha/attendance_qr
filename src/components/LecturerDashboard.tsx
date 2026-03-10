@@ -10,6 +10,7 @@ import LectureCard from "./LectureCard";
 import LowAttendancePanel from "./LowAttendancePanel";
 import TurnoutAnomalyPanel from "./TurnoutAnomalyPanel";
 import LecturerNotificationsPanel from "./LecturerNotificationsPanel";
+import ManageStudentsPanel from "./ManageStudentsPanel";
 
 interface LecturerDashboardProps {
   profile: any;
@@ -179,6 +180,22 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
                 ))}
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Manage Students */}
+        <Card className="shadow-card">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-primary" />
+              <div>
+                <CardTitle>Manage Students</CardTitle>
+                <CardDescription>View and edit student profiles</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ManageStudentsPanel />
           </CardContent>
         </Card>
 
