@@ -157,14 +157,9 @@ const TurnoutAnomalyPanel = ({ lecturerId }: TurnoutAnomalyPanelProps) => {
               <CardTitle className="flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-orange-500" />
                 Lectures Below {threshold}% Turnout
-                {flaggedLectures.length > 0 && (
-                  <Badge variant="destructive" className="ml-2">
-                    {flaggedLectures.length}
-                  </Badge>
-                )}
               </CardTitle>
               <CardDescription>
-                Detect and get notified about sessions with unusually low student turnout
+                Detect sessions with unusually low student turnout
               </CardDescription>
             </div>
           </div>
