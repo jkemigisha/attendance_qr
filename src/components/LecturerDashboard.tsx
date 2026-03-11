@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import CreateLectureDialog from "./CreateLectureDialog";
 import LectureCard from "./LectureCard";
-import TurnoutAnomalyPanel from "./TurnoutAnomalyPanel";
 import LecturerNotificationsPanel from "./LecturerNotificationsPanel";
 import ManageStudentsPanel from "./ManageStudentsPanel";
 
@@ -204,21 +203,6 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
           </CardContent>
         </Card>
 
-        {/* Turnout Anomaly Detection */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <TrendingDown className="w-5 h-5 text-orange-500" />
-              <div>
-                <CardTitle>Turnout Anomalies</CardTitle>
-                <CardDescription>Lectures with unusually low student turnout</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <TurnoutAnomalyPanel lecturerId={profile.id} />
-          </CardContent>
-        </Card>
       </main>
 
       <CreateLectureDialog
