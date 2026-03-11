@@ -92,7 +92,7 @@ const Auth = () => {
             UCU-BBUC Attendance
           </CardTitle>
           <CardDescription className="text-base">
-            Automated Lecture Attendance System
+            QR Lecture Attendance System
           </CardDescription>
         </CardHeader>
         <CardContent>
