@@ -82,16 +82,23 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-4">
-      <Card className="w-full max-w-md shadow-elevated">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Image with Overlay */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-700"
+        style={{ backgroundImage: "url('/login-bg.png')" }}
+      />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+
+      <Card className="w-full max-w-md shadow-2xl relative z-10 bg-white/90 backdrop-blur-md border-white/20">
         <CardHeader className="text-center space-y-2">
           <div className="flex justify-center mb-4">
-            <img src="/images/ucu-logo.png" alt="Uganda Christian University Logo" className="w-24 h-24 object-contain" />
+            <img src="/images/ucu-logo.png" alt="Uganda Christian University Logo" className="w-24 h-24 object-contain drop-shadow-md" />
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+          <CardTitle className="text-3xl font-bold text-primary">
             UCU-BBUC Attendance
           </CardTitle>
-          <CardDescription className="text-base">
+          <CardDescription className="text-base text-muted-foreground font-medium">
             QR Lecture Attendance System
           </CardDescription>
         </CardHeader>
