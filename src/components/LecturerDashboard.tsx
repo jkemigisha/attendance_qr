@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, Plus, Calendar, Users, QrCode, TrendingDown } from "lucide-react";
+import { LogOut, Plus, Calendar, Users, QrCode, Bell, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import CreateLectureDialog from "./CreateLectureDialog";
 import LectureCard from "./LectureCard";
 import TurnoutAnomalyPanel from "./TurnoutAnomalyPanel";
+import LecturerNotificationsPanel from "./LecturerNotificationsPanel";
 import ManageStudentsPanel from "./ManageStudentsPanel";
 
 interface LecturerDashboardProps {
@@ -19,6 +20,8 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
   const [lectures, setLectures] = useState<any[]>([]);
   const [stats, setStats] = useState({ total: 0, active: 0, totalAttendance: 0 });
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -74,6 +77,19 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
             <p className="text-sm text-muted-foreground">Welcome back, {profile.full_name}</p>
           </div>
           <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative hover:bg-primary/10 transition-colors"
+              onClick={() => setShowNotifications(!showNotifications)}
+            >
+              <Bell className={`w-6 h-6 ${showNotifications ? 'text-primary' : 'text-muted-foreground'}`} />
+              {unreadNotifs > 0 && (
+                <span className="absolute top-1 right-1 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  {unreadNotifs}
+                </span>
+              )}
+            </Button>
             <Button variant="outline" onClick={handleSignOut} className="gap-2">
               <LogOut className="w-4 h-4" />
               Sign Out
@@ -126,8 +142,12 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
         </div>
 
 
-
-        {/* Actions */}
+        {showNotifications && (
+          <LecturerNotificationsPanel
+            lecturerId={profile.id}
+            onUnreadCountChange={setUnreadNotifs}
+          />
+        )}
         <Card id="my-lectures" className="shadow-card scroll-mt-20">
           <CardHeader>
             <div className="flex items-center justify-between">

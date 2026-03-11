@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, QrCode, CheckCircle2, Calendar } from "lucide-react";
+import { LogOut, QrCode, CheckCircle2, Calendar, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import QRScanner from "./QRScanner";
 import AttendanceHistory from "./AttendanceHistory";
+import NotificationsPanel from "./NotificationsPanel";
 
 interface StudentDashboardProps {
   profile: any;
@@ -19,6 +20,8 @@ const StudentDashboard = ({ profile }: StudentDashboardProps) => {
   const [showScanner, setShowScanner] = useState(false);
   const [stats, setStats] = useState({ total: 0, thisWeek: 0, percentage: 0, totalLectures: 0 });
   const [attendance, setAttendance] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     fetchAttendance();
@@ -134,6 +137,19 @@ const StudentDashboard = ({ profile }: StudentDashboardProps) => {
             )}
           </div>
           <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative hover:bg-primary/10 transition-colors"
+              onClick={() => setShowNotifications(!showNotifications)}
+            >
+              <Bell className={`w-6 h-6 ${showNotifications ? 'text-primary' : 'text-muted-foreground'}`} />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
+            </Button>
             <Button variant="outline" onClick={handleSignOut} className="gap-2">
               <LogOut className="w-4 h-4" />
               Sign Out
@@ -241,6 +257,13 @@ const StudentDashboard = ({ profile }: StudentDashboardProps) => {
 
 
 
+        {showNotifications && (
+          <NotificationsPanel
+            studentId={profile.id}
+            onUnreadCountChange={setUnreadCount}
+          />
+        )}
+        
         {/* Attendance History */}
         <AttendanceHistory attendance={attendance} />
       </main>
