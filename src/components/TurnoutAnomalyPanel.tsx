@@ -5,13 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { AlertTriangle, Bell, BellOff, CheckCircle2, Loader2, Users, TrendingDown } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 
-// Cast supabase to any to support the lecturer_notifications table before types are regenerated
-const db = supabase as any;
 
 interface LectureWithTurnout {
   id: string;
@@ -23,7 +21,6 @@ interface LectureWithTurnout {
   attendees: number;
   totalStudents: number;
   turnoutPct: number;
-  alreadyNotified: boolean;
 }
 
 interface TurnoutAnomalyPanelProps {
@@ -34,8 +31,6 @@ const TurnoutAnomalyPanel = ({ lecturerId }: TurnoutAnomalyPanelProps) => {
   const [lectures, setLectures] = useState<LectureWithTurnout[]>([]);
   const [threshold, setThreshold] = useState(50);
   const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState<string | null>(null);
-  const [sendingAll, setSendingAll] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -66,17 +61,6 @@ const TurnoutAnomalyPanel = ({ lecturerId }: TurnoutAnomalyPanelProps) => {
 
       const studentCount = totalStudents || 0;
 
-      // 3. Get already-notified lecture IDs
-      const { data: notifData } = await db
-        .from("lecturer_notifications")
-        .select("lecture_id")
-        .eq("lecturer_id", lecturerId)
-        .eq("type", "low_turnout");
-
-      const notifiedSet = new Set(
-        (notifData || []).map((n: any) => n.lecture_id)
-      );
-
       // 4. Build turnout data
       const result: LectureWithTurnout[] = (lecturesData || []).map((l: any) => {
         const attendees = l.attendance?.[0]?.count || 0;
@@ -92,7 +76,6 @@ const TurnoutAnomalyPanel = ({ lecturerId }: TurnoutAnomalyPanelProps) => {
           attendees,
           totalStudents: studentCount,
           turnoutPct,
-          alreadyNotified: notifiedSet.has(l.id),
         };
       });
 
@@ -106,60 +89,6 @@ const TurnoutAnomalyPanel = ({ lecturerId }: TurnoutAnomalyPanelProps) => {
   };
 
   const flaggedLectures = lectures.filter((l) => l.turnoutPct < threshold);
-
-  const sendNotification = async (lecture: LectureWithTurnout) => {
-    setSending(lecture.id);
-    try {
-      const { error } = await db.from("lecturer_notifications").insert({
-        lecturer_id: lecturerId,
-        lecture_id: lecture.id,
-        title: "⚠️ Low Turnout Alert",
-        message: `Your lecture "${lecture.title}" (${lecture.course_code}) on ${format(new Date(lecture.scheduled_time), "MMM d, yyyy 'at' h:mm a")} had only ${lecture.attendees} out of ${lecture.totalStudents} students (${lecture.turnoutPct}% turnout). This is below the ${threshold}% threshold.`,
-        type: "low_turnout",
-      });
-      if (error) throw error;
-      toast.success(`Anomaly notification created for "${lecture.title}"`);
-      setLectures((prev) =>
-        prev.map((l) =>
-          l.id === lecture.id ? { ...l, alreadyNotified: true } : l
-        )
-      );
-    } catch (err: any) {
-      toast.error("Failed to send notification: " + err.message);
-    } finally {
-      setSending(null);
-    }
-  };
-
-  const sendAllNotifications = async () => {
-    const unnotified = flaggedLectures.filter((l) => !l.alreadyNotified);
-    if (unnotified.length === 0) {
-      toast.info("All flagged lectures have already been notified");
-      return;
-    }
-    setSendingAll(true);
-    try {
-      const inserts = unnotified.map((l) => ({
-        lecturer_id: lecturerId,
-        lecture_id: l.id,
-        title: "⚠️ Low Turnout Alert",
-        message: `Your lecture "${l.title}" (${l.course_code}) on ${format(new Date(l.scheduled_time), "MMM d, yyyy 'at' h:mm a")} had only ${l.attendees} out of ${l.totalStudents} students (${l.turnoutPct}% turnout). This is below the ${threshold}% threshold.`,
-        type: "low_turnout",
-      }));
-      const { error } = await db.from("lecturer_notifications").insert(inserts);
-      if (error) throw error;
-      toast.success(`Notifications created for ${unnotified.length} lecture(s)`);
-      setLectures((prev) =>
-        prev.map((l) =>
-          unnotified.find((u) => u.id === l.id) ? { ...l, alreadyNotified: true } : l
-        )
-      );
-    } catch (err: any) {
-      toast.error("Failed to send notifications: " + err.message);
-    } finally {
-      setSendingAll(false);
-    }
-  };
 
   const getBadgeVariant = (pct: number) => {
     if (pct < 25) return "destructive";
@@ -238,21 +167,6 @@ const TurnoutAnomalyPanel = ({ lecturerId }: TurnoutAnomalyPanelProps) => {
                 Detect and get notified about sessions with unusually low student turnout
               </CardDescription>
             </div>
-            {flaggedLectures.length > 0 && (
-              <Button
-                onClick={sendAllNotifications}
-                disabled={sendingAll}
-                variant="destructive"
-                className="gap-2"
-              >
-                {sendingAll ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Bell className="w-4 h-4" />
-                )}
-                Notify All ({flaggedLectures.filter((l) => !l.alreadyNotified).length} pending)
-              </Button>
-            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -271,8 +185,6 @@ const TurnoutAnomalyPanel = ({ lecturerId }: TurnoutAnomalyPanelProps) => {
                   <TableHead>Date</TableHead>
                   <TableHead>Venue</TableHead>
                   <TableHead>Turnout</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-36">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -302,33 +214,6 @@ const TurnoutAnomalyPanel = ({ lecturerId }: TurnoutAnomalyPanelProps) => {
                           {l.attendees}/{l.totalStudents}
                         </span>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      {l.alreadyNotified ? (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <BellOff className="w-3 h-3" /> Notified
-                        </span>
-                      ) : (
-                        <span className="text-xs text-orange-600 flex items-center gap-1">
-                          <Bell className="w-3 h-3" /> Pending
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant={l.alreadyNotified ? "outline" : "default"}
-                        onClick={() => sendNotification(l)}
-                        disabled={sending === l.id}
-                        className="gap-1 h-8"
-                      >
-                        {sending === l.id ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : (
-                          <Bell className="w-3 h-3" />
-                        )}
-                        {l.alreadyNotified ? "Re-notify" : "Notify"}
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
