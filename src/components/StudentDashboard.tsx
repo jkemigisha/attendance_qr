@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import QRScanner from "./QRScanner";
 import AttendanceHistory from "./AttendanceHistory";
-import NotificationsPanel from "./NotificationsPanel";
 
 interface StudentDashboardProps {
   profile: any;
@@ -20,7 +19,6 @@ const StudentDashboard = ({ profile }: StudentDashboardProps) => {
   const [showScanner, setShowScanner] = useState(false);
   const [stats, setStats] = useState({ total: 0, thisWeek: 0, percentage: 0, totalLectures: 0 });
   const [attendance, setAttendance] = useState<any[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     fetchAttendance();
@@ -136,15 +134,6 @@ const StudentDashboard = ({ profile }: StudentDashboardProps) => {
             )}
           </div>
           <div className="flex items-center gap-3">
-            {/* Notification bell */}
-            <div className="relative">
-              <Bell className="w-6 h-6 text-muted-foreground" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
-            </div>
             <Button variant="outline" onClick={handleSignOut} className="gap-2">
               <LogOut className="w-4 h-4" />
               Sign Out
@@ -250,11 +239,7 @@ const StudentDashboard = ({ profile }: StudentDashboardProps) => {
           </CardContent>
         </Card>
 
-        {/* Notifications Panel - shown if student has any notifications */}
-        <NotificationsPanel
-          studentId={profile.id}
-          onUnreadCountChange={setUnreadCount}
-        />
+
 
         {/* Attendance History */}
         <AttendanceHistory attendance={attendance} />

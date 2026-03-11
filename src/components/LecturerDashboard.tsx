@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 import CreateLectureDialog from "./CreateLectureDialog";
 import LectureCard from "./LectureCard";
 import TurnoutAnomalyPanel from "./TurnoutAnomalyPanel";
-import LecturerNotificationsPanel from "./LecturerNotificationsPanel";
 import ManageStudentsPanel from "./ManageStudentsPanel";
 
 interface LecturerDashboardProps {
@@ -20,7 +19,6 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
   const [lectures, setLectures] = useState<any[]>([]);
   const [stats, setStats] = useState({ total: 0, active: 0, totalAttendance: 0 });
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [unreadNotifs, setUnreadNotifs] = useState(0);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -76,14 +74,6 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
             <p className="text-sm text-muted-foreground">Welcome back, {profile.full_name}</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <Bell className="w-6 h-6 text-muted-foreground" />
-              {unreadNotifs > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                  {unreadNotifs}
-                </span>
-              )}
-            </div>
             <Button variant="outline" onClick={handleSignOut} className="gap-2">
               <LogOut className="w-4 h-4" />
               Sign Out
@@ -135,11 +125,7 @@ const LecturerDashboard = ({ profile }: LecturerDashboardProps) => {
           </Card>
         </div>
 
-        {/* Lecturer Notifications */}
-        <LecturerNotificationsPanel
-          lecturerId={profile.id}
-          onUnreadCountChange={setUnreadNotifs}
-        />
+
 
         {/* Actions */}
         <Card id="my-lectures" className="shadow-card scroll-mt-20">
