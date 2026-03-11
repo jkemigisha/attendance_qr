@@ -174,33 +174,13 @@ const LowAttendancePanel = ({ lecturerId }: LowAttendancePanelProps) => {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Bell className="w-5 h-5 text-amber-500" />
+                <AlertTriangle className="w-5 h-5 text-amber-500" />
                 Students Below {threshold}% Attendance
-                {lowStudents.length > 0 && (
-                  <Badge variant="destructive" className="ml-2">
-                    {lowStudents.length}
-                  </Badge>
-                )}
               </CardTitle>
               <CardDescription>
-                Send in-app alerts to notify students of their low attendance
+                Detect students who have unusually low attendance
               </CardDescription>
             </div>
-            {lowStudents.length > 0 && (
-              <Button
-                onClick={sendAllAlerts}
-                disabled={sendingAll}
-                variant="destructive"
-                className="gap-2"
-              >
-                {sendingAll ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Bell className="w-4 h-4" />
-                )}
-                Alert All ({lowStudents.filter((s) => !s.alreadyAlerted).length} pending)
-              </Button>
-            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -219,8 +199,6 @@ const LowAttendancePanel = ({ lecturerId }: LowAttendancePanelProps) => {
                   <TableHead>Department</TableHead>
                   <TableHead>Attended</TableHead>
                   <TableHead>Rate</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-32">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -236,33 +214,6 @@ const LowAttendancePanel = ({ lecturerId }: LowAttendancePanelProps) => {
                       <Badge variant={getBadgeVariant(s.percentage)}>
                         {s.percentage}%
                       </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {s.alreadyAlerted ? (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <BellOff className="w-3 h-3" /> Alerted
-                        </span>
-                      ) : (
-                        <span className="text-xs text-amber-600 flex items-center gap-1">
-                          <Bell className="w-3 h-3" /> Pending
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant={s.alreadyAlerted ? "outline" : "default"}
-                        onClick={() => sendAlert(s)}
-                        disabled={sending === s.id}
-                        className="gap-1 h-8"
-                      >
-                        {sending === s.id ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : (
-                          <Bell className="w-3 h-3" />
-                        )}
-                        {s.alreadyAlerted ? "Re-alert" : "Send Alert"}
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
