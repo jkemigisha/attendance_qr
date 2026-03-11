@@ -5,12 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { AlertTriangle, Bell, BellOff, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
-
-// Cast supabase to any to support the notifications table before types are regenerated
-const db = supabase as any;
 
 interface StudentAttendance {
   id: string;
@@ -21,7 +18,6 @@ interface StudentAttendance {
   attended: number;
   total: number;
   percentage: number;
-  alreadyAlerted: boolean;
 }
 
 interface LowAttendancePanelProps {
@@ -33,8 +29,6 @@ const LowAttendancePanel = ({ lecturerId }: LowAttendancePanelProps) => {
   const [students, setStudents] = useState<StudentAttendance[]>([]);
   const [threshold, setThreshold] = useState(75);
   const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState<string | null>(null);
-  const [sendingAll, setSendingAll] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -79,13 +73,7 @@ const LowAttendancePanel = ({ lecturerId }: LowAttendancePanelProps) => {
       const { data: attData, error: attError } = await attQuery;
       if (attError) throw attError;
 
-      // Fetch existing low_attendance notifications to mark already-alerted students
-      const { data: notifData } = await db
-        .from("notifications")
-        .select("student_id")
-        .eq("type", "low_attendance");
-
-      const alertedSet = new Set((notifData || []).map((n: any) => n.student_id));
+      if (attError) throw attError;
 
       // Count per student
       const countMap: Record<string, number> = {};
@@ -107,7 +95,6 @@ const LowAttendancePanel = ({ lecturerId }: LowAttendancePanelProps) => {
           attended,
           total: totalLectures,
           percentage,
-          alreadyAlerted: alertedSet.has(p.id),
         };
       });
 
@@ -121,57 +108,6 @@ const LowAttendancePanel = ({ lecturerId }: LowAttendancePanelProps) => {
   };
 
   const lowStudents = students.filter((s) => s.percentage < threshold);
-
-  const sendAlert = async (student: StudentAttendance) => {
-    setSending(student.id);
-    try {
-      const { error } = await db.from("notifications").insert({
-        student_id: student.id,
-        title: "⚠️ Low Attendance Warning",
-        message: `Dear ${student.full_name}, your current attendance rate is ${student.percentage}% (${student.attended}/${student.total} lectures). The minimum required attendance is ${threshold}%. Please attend more sessions to avoid academic penalties.`,
-        type: "low_attendance",
-      });
-      if (error) throw error;
-      toast.success(`Alert sent to ${student.full_name}`);
-      // Mark as alerted locally
-      setStudents((prev) =>
-        prev.map((s) => (s.id === student.id ? { ...s, alreadyAlerted: true } : s))
-      );
-    } catch (err: any) {
-      toast.error("Failed to send alert: " + err.message);
-    } finally {
-      setSending(null);
-    }
-  };
-
-  const sendAllAlerts = async () => {
-    const unalerted = lowStudents.filter((s) => !s.alreadyAlerted);
-    if (unalerted.length === 0) {
-      toast.info("All low-attendance students have already been alerted");
-      return;
-    }
-    setSendingAll(true);
-    try {
-      const inserts = unalerted.map((s) => ({
-        student_id: s.id,
-        title: "⚠️ Low Attendance Warning",
-        message: `Dear ${s.full_name}, your current attendance rate is ${s.percentage}% (${s.attended}/${s.total} lectures). The minimum required attendance is ${threshold}%. Please attend more sessions to avoid academic penalties.`,
-        type: "low_attendance",
-      }));
-      const { error } = await db.from("notifications").insert(inserts);
-      if (error) throw error;
-      toast.success(`Alerts sent to ${unalerted.length} student(s)`);
-      setStudents((prev) =>
-        prev.map((s) =>
-          unalerted.find((u) => u.id === s.id) ? { ...s, alreadyAlerted: true } : s
-        )
-      );
-    } catch (err: any) {
-      toast.error("Failed to send alerts: " + err.message);
-    } finally {
-      setSendingAll(false);
-    }
-  };
 
   const getBadgeVariant = (pct: number) => {
     if (pct < 50) return "destructive";
