@@ -8,13 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, Users, GraduationCap, BookOpen, ClipboardList, Plus, Trash2, Search, Printer, Download, Filter, FileText } from "lucide-react";
+import { LogOut, Users, GraduationCap, BookOpen, ClipboardList, Plus, Trash2, Search, Printer, Download, Filter, FileText, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import EditStudentDialog from "./EditStudentDialog";
+import EditRoleDialog from "./EditRoleDialog";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ const AdminDashboard = () => {
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [newCourse, setNewCourse] = useState({ course_code: "", course_name: "", department: "" });
   const [editingStudent, setEditingStudent] = useState<any>(null);
+  const [editingRoleUser, setEditingRoleUser] = useState<any>(null);
 
   useEffect(() => {
     fetchAll();
@@ -356,9 +358,14 @@ const AdminDashboard = () => {
                         <TableCell>{l.department || "—"}</TableCell>
                         <TableCell>{format(new Date(l.created_at), "MMM d, yyyy")}</TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteProfile(l.id, l.full_name)}>
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => setEditingRoleUser(l)} title="Change Role">
+                              <Shield className="w-4 h-4 text-primary" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteProfile(l.id, l.full_name)} title="Delete Lecturer">
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -417,10 +424,13 @@ const AdminDashboard = () => {
                         <TableCell>{format(new Date(s.created_at), "MMM d, yyyy")}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => setEditingStudent(s)}>
+                            <Button variant="ghost" size="icon" onClick={() => setEditingRoleUser(s)} title="Change Role">
+                              <Shield className="w-4 h-4 text-primary" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => setEditingStudent(s)} title="Edit Student">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-primary"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteProfile(s.id, s.full_name)}>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteProfile(s.id, s.full_name)} title="Delete Student">
                               <Trash2 className="w-4 h-4 text-destructive" />
                             </Button>
                           </div>
@@ -604,6 +614,15 @@ const AdminDashboard = () => {
             student={editingStudent}
             open={!!editingStudent}
             onOpenChange={(open) => !open && setEditingStudent(null)}
+            onUpdate={fetchAll}
+          />
+        )}
+
+        {editingRoleUser && (
+          <EditRoleDialog
+            user={editingRoleUser}
+            open={!!editingRoleUser}
+            onOpenChange={(open) => !open && setEditingRoleUser(null)}
             onUpdate={fetchAll}
           />
         )}
